@@ -1,0 +1,202 @@
+// =============================================
+// Arduino Sensor Control Chatbot
+// Ready for GitHub Deployment (Vite + React)
+// =============================================
+// วิธีใช้งาน:
+// 1. สร้างโปรเจคด้วยคำสั่ง:
+//    npm create vite@latest arduino-sensor-chatbot
+//    เลือก React
+// 2. แทนที่ไฟล์ src/App.jsx ด้วยโค้ดนี้
+// 3. npm install
+// 4. npm run dev
+// 5. push ขึ้น GitHub ได้ทันที
+// =============================================
+
+import { useState } from "react";
+
+export default function App() {
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([
+    { role: "bot", text: "🤖 Arduino Sensor Assistant พร้อมช่วยคุณ!\nพิมพ์ชื่อ Sensor เช่น DHT11, Ultrasonic, LDR, PIR" }
+  ]);
+
+  const generateResponse = (text) => {
+    text = text.toLowerCase();
+
+    if (text.includes("dht11")) {
+      return `📌 DHT11 Temperature & Humidity Sensor
+
+การต่อสาย:
+VCC → 5V
+GND → GND
+DATA → D2
+
+โค้ดตัวอย่าง:
+#include <DHT.h>
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+}
+
+void loop() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  Serial.print("Temp: ");
+  Serial.println(t);
+  delay(2000);
+}`;
+    }
+
+    if (text.includes("ultrasonic") || text.includes("hc-sr04")) {
+      return `📌 Ultrasonic HC-SR04
+
+Trig → D9
+Echo → D10
+
+#define trig 9
+#define echo 10
+
+void setup(){
+  Serial.begin(9600);
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
+}
+
+void loop(){
+  digitalWrite(trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+
+  long duration = pulseIn(echo, HIGH);
+  float distance = duration * 0.034 / 2;
+
+  Serial.println(distance);
+  delay(500);
+}`;
+    }
+
+    if (text.includes("ldr")) {
+      return `📌 LDR Light Sensor
+
+LDR → A0
+
+void setup(){
+  Serial.begin(9600);
+}
+
+void loop(){
+  int lightValue = analogRead(A0);
+  Serial.println(lightValue);
+  delay(500);
+}`;
+    }
+
+    if (text.includes("pir")) {
+      return `📌 PIR Motion Sensor
+
+OUT → D3
+
+#define pir 3
+
+void setup(){
+  Serial.begin(9600);
+  pinMode(pir, INPUT);
+}
+
+void loop(){
+  int motion = digitalRead(pir);
+  if(motion == HIGH){
+    Serial.println("Motion Detected");
+  }
+  delay(500);
+}`;
+    }
+
+    if (text.includes("soil")) {
+      return `📌 Soil Moisture Sensor
+
+Sensor → A0
+
+void setup(){
+  Serial.begin(9600);
+}
+
+void loop(){
+  int moisture = analogRead(A0);
+  Serial.println(moisture);
+  delay(1000);
+}`;
+    }
+
+    return "❓ ไม่พบ Sensor นี้\nรองรับ: DHT11, Ultrasonic, LDR, PIR, Soil";
+  };
+
+  const handleSend = () => {
+    if (!input) return;
+
+    const userMsg = { role: "user", text: input };
+    const botMsg = { role: "bot", text: generateResponse(input) };
+
+    setMessages([...messages, userMsg, botMsg]);
+    setInput("");
+  };
+
+  return (
+    <div style={{
+      fontFamily: "Arial",
+      background: "#f4f6f8",
+      minHeight: "100vh",
+      padding: "30px"
+    }}>
+      <div style={{
+        maxWidth: "800px",
+        margin: "auto",
+        background: "white",
+        padding: "20px",
+        borderRadius: "15px",
+        boxShadow: "0 10px 30px rgba(0,0,0,0.1)"
+      }}>
+        <h2>🤖 Arduino Sensor Control Chatbot</h2>
+
+        <div style={{
+          height: "400px",
+          overflowY: "auto",
+          border: "1px solid #ddd",
+          padding: "10px",
+          marginBottom: "15px",
+          borderRadius: "10px",
+          background: "#fafafa"
+        }}>
+          {messages.map((msg, index) => (
+            <div key={index}
+              style={{
+                marginBottom: "10px",
+                color: msg.role === "bot" ? "green" : "blue",
+                whiteSpace: "pre-wrap"
+              }}>
+              {msg.role === "user" ? "👤 " : "🤖 "}{msg.text}
+            </div>
+          ))}
+        </div>
+
+        <input
+          style={{ width: "75%", padding: "8px" }}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="พิมพ์ชื่อ Sensor..."
+        />
+        <button
+          onClick={handleSend}
+          style={{ padding: "8px 15px", marginLeft: "10px" }}>
+          ส่ง
+        </button>
+      </div>
+    </div>
+  );
+}
